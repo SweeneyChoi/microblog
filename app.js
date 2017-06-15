@@ -8,6 +8,9 @@ var bodyParser = require('body-parser');
 var index = require('./routes/index');
 var ejs = require('ejs');
 var partials = require('express-partials');
+var session = require('express-session');
+var MongoStore = require('connect-mongo')(session);
+var settings = require('./settings');
 
 var app = express();
 
@@ -23,6 +26,15 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(session({
+    secret: settings.cookieSecret,//secret 用来防止篡改 cookie
+    //设置它的 store 参数为 MongoStore 实例，把会话信息存储到数据库中，以避免丢失。
+    store: new MongoStore({
+        //db: settings.db,
+        url:'mongodb://localhost/'+settings.db,
+        autoRemove:'native'
+    })
+}));
 
 app.use('/', index);
 
